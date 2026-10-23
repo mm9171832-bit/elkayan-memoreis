@@ -9,203 +9,437 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#071b33;color:#fff}
+body{margin:0;background:#071b33;color:#fff;font-family:Arial,sans-serif}
 header{text-align:center;padding:28px 14px;background:linear-gradient(135deg,#0d3150,#087f8c)}
-h1{margin:0 0 8px;font-size:30px}
-header p{margin:0;color:#d8f5f5}
-main{max-width:850px;margin:auto;padding:16px}
-.panel{background:#102943;padding:16px;border-radius:16px;margin-bottom:16px}
-input,select,button{font:inherit;width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #34536d}
+h1{margin:0 0 8px;font-size:29px}
+main{max-width:850px;margin:auto;padding:15px}
+.panel,.subject{background:#102943;padding:16px;border-radius:15px;margin-bottom:15px}
+input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #34536d;border-radius:10px;font:inherit}
 input,select{background:#071b33;color:white}
 button{background:#08a6a6;color:white;border:0;font-weight:bold;cursor:pointer}
-button.secondary{background:#294761}
-button.danger{background:#b83d50}
+button:disabled{opacity:.55}
+.danger{background:#b83d50}
+.secondary{background:#294761}
 .hidden{display:none!important}
-.subject{background:#102943;border:1px solid #294761;padding:14px;border-radius:14px;margin:12px 0}
-.subject h3{margin:0 0 10px}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
-.item{background:#071b33;padding:10px;border-radius:12px;overflow-wrap:anywhere}
-.item img,.item video{width:100%;border-radius:8px;max-height:230px;object-fit:contain}
-a{color:#66e4e4}
-.small{font-size:13px;color:#c3d5e4}
-#status{white-space:pre-wrap;line-height:1.7}
+.small{font-size:13px;color:#c3d5e4;line-height:1.8}
+#status{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.item{background:#071b33;padding:10px;border-radius:12px;overflow-wrap:anywhere;min-width:0}
+.item img,.item video{width:100%;max-height:250px;object-fit:contain;border-radius:8px}
+a{color:#66e4e4;overflow-wrap:anywhere}
+hr{border-color:#34536d;margin:20px 0}
 footer{text-align:center;padding:20px;color:#9fb7c9}
 </style>
 </head>
 <body>
 <header>
-<h1>الكيان | ذكرياتنا</h1>
-<p>ذكريات فصلنا في مكان واحد 💙</p>
+<h1>✦ الكيان | ذكرياتنا</h1>
+<p>ذكرياتنا وموادنا في مكان واحد 💙</p>
 </header>
 
 <main>
-<div class="panel">
-<h3>📚 المواد الدراسية</h3>
-<p class="small">اختار مادة عشان تشوف الصور والفيديوهات والملفات والروابط.</p>
+<section class="panel">
+<h3>📚 مواد الفصل</h3>
+<p class="small">اختار المادة وشوف ذكرياتنا. تقدر تفتح الصور والفيديوهات وملفات PDF والروابط.</p>
 <div id="status">جاري الاتصال بقاعدة البيانات...</div>
-</div>
+</section>
 
-<div id="adminLogin" class="panel">
+<section class="panel" id="loginPanel">
 <h3>🔐 إدارة الموقع</h3>
-<p class="small">اكتب كود الإدارة لإظهار أدوات الإضافة والحذف.</p>
-<input id="adminCode" type="password" placeholder="كود الإدارة">
+<input id="adminCode" type="password" placeholder="كود الإدارة" autocomplete="off">
 <button onclick="login()">دخول الإدارة</button>
-</div>
+</section>
 
-<div id="adminPanel" class="panel hidden">
-<h3>⚙️ إدارة المواد</h3>
-<input id="subjectName" placeholder="اسم المادة الجديدة">
-<button onclick="addSubject()">➕ إضافة مادة</button>
+<section class="panel hidden" id="adminPanel">
+<h3>⚙️ لوحة الإدارة</h3>
+<button class="secondary" onclick="logout()">خروج من الإدارة</button>
 <hr>
-<h3>إضافة محتوى لمادة</h3>
+<h3>➕ إضافة مادة</h3>
+<input id="subjectName" placeholder="اسم المادة">
+<button onclick="addSubject()">حفظ المادة</button>
+
+<hr>
+<h3>📷 إضافة محتوى</h3>
+<label for="mediaSubject">المادة</label>
 <select id="mediaSubject"></select>
-<input id="mediaTitle" placeholder="عنوان الصورة أو الملف">
-<select id="mediaKind">
-<option value="image">صورة</option>
-<option value="video">فيديو</option>
-<option value="pdf">PDF</option>
+
+<label for="mediaKind">نوع المحتوى</label>
+<select id="mediaKind" onchange="updateFileType()">
+<option value="image">صورة من الموبايل</option>
+<option value="video">فيديو من الموبايل</option>
+<option value="pdf">ملف PDF من الموبايل</option>
 <option value="link">رابط</option>
 </select>
-<input id="mediaFile" type="file" accept="image/*,video/*,.pdf">
-<input id="mediaUrl" placeholder="رابط المحتوى (اختياري للملف، مطلوب للرابط)">
-<button onclick="addMedia()">⬆️ إضافة المحتوى</button>
-<button class="secondary" onclick="logout()">خروج من الإدارة</button>
-</div>
+
+<input id="mediaTitle" placeholder="عنوان المحتوى (اختياري)">
+<label for="mediaFile">اختيار ملف من الجهاز</label>
+<input id="mediaFile" type="file" accept="image/*">
+
+<p class="small">للصور والفيديوهات وملفات PDF: اختار الملف من جهازك. ولإضافة رابط، اختار «رابط» واكتب الرابط. يمكنك أيضًا استخدام رابط مباشر لمحتوى موجود بالفعل.</p>
+<input id="mediaUrl" type="url" placeholder="رابط المحتوى (للروابط أو المحتوى الموجود بالفعل)">
+<button onclick="addMedia()">⬆️ رفع المحتوى وحفظه</button>
+</section>
 
 <div id="subjects"></div>
 </main>
-<footer>الكيان | ذكرياتنا — أولى تاني</footer>
+<footer>الكيان © ذكرياتنا تجمعنا 💙</footer>
 
 <script>
+"use strict";
+
 const SUPABASE_URL = "https://ptwqqxvdligohhotreac.supabase.co";
-const SUPABASE_KEY = "sb_publishable_dlOf_WVqe3OMLPGXkM2w5Q_g_ERYO-q";
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ضع مفتاح Publishable الحقيقي بين علامتي التنصيص.
+const SUPABASE_KEY = "ضع_مفتاح_Publishable_هنا";
 
 const BUCKET = "kayan-media";
+const ADMIN_CODE = "232850";
+
+const $ = id => document.getElementById(id);
+let db = null;
 let isAdmin = false;
 let subjects = [];
 let media = [];
+let busy = false;
 
-const $ = id => document.getElementById(id);
-function status(msg){ $("status").textContent = msg; }
-function safe(text){
-  return String(text ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
+function status(message) {
+  $("status").textContent = message;
 }
-function login(){
-  if($("adminCode").value === "232850"){
-    isAdmin = true;
-    $("adminPanel").classList.remove("hidden");
-    $("adminLogin").classList.add("hidden");
-    render();
-  }else{
-    alert("كود الإدارة غير صحيح");
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;",
+    '"':"&quot;", "'":"&#39;"
+  })[c]);
+}
+
+function setBusy(value) {
+  busy = value;
+  document.querySelectorAll("#adminPanel button").forEach(button => {
+    button.disabled = value;
+  });
+}
+
+function explainError(error) {
+  if (!error) return "خطأ غير معروف";
+  return [error.message, error.details, error.hint, error.code]
+    .filter(Boolean).join("\n");
+}
+
+async function run(action) {
+  if (busy) return;
+  setBusy(true);
+  try {
+    await action();
+  } catch (error) {
+    alert("حصل خطأ:\n" + explainError(error));
+  } finally {
+    setBusy(false);
   }
 }
-function logout(){
+
+function login() {
+  if ($("adminCode").value !== ADMIN_CODE) {
+    alert("كود الإدارة غير صحيح");
+    return;
+  }
+
+  isAdmin = true;
+  $("adminPanel").classList.remove("hidden");
+  $("loginPanel").classList.add("hidden");
+  $("adminCode").value = "";
+  render();
+}
+
+function logout() {
   isAdmin = false;
   $("adminPanel").classList.add("hidden");
-  $("adminLogin").classList.remove("hidden");
+  $("loginPanel").classList.remove("hidden");
   render();
 }
-async function loadData(){
+
+function updateFileType() {
+  const kind = $("mediaKind").value;
+  const file = $("mediaFile");
+
+  file.value = "";
+
+  if (kind === "image") file.accept = "image/*";
+  else if (kind === "video") file.accept = "video/*";
+  else if (kind === "pdf") file.accept = ".pdf,application/pdf";
+  else file.accept = "";
+}
+
+async function loadData() {
   status("جاري تحميل المواد...");
-  const s = await db.from("subjects").select("*").order("id");
-  if(s.error){
-    status("فشل تحميل المواد: " + s.error.message +
-      "\nتأكد من إعداد جدول subjects وصلاحيات القراءة في Supabase.");
+
+  const s = await db.from("subjects")
+    .select("id,name,created_at")
+    .order("id", {ascending:true});
+
+  if (s.error) {
+    status("فشل تحميل المواد:\n" + explainError(s.error));
     return;
   }
+
+  const m = await db.from("media")
+    .select("id,subject_id,title,kind,url,created_at")
+    .order("id", {ascending:false});
+
+  if (m.error) {
+    status("تم تحميل المواد، لكن فشل تحميل المحتوى:\n" +
+      explainError(m.error));
+    return;
+  }
+
   subjects = s.data || [];
-  const m = await db.from("media").select("*").order("id",{ascending:false});
-  if(m.error){
-    status("المواد اتصلت، لكن تحميل المحتوى فشل: " + m.error.message +
-      "\nتأكد من إعداد جدول media وصلاحياته.");
-    return;
-  }
   media = m.data || [];
-  status(subjects.length ? "تم تحميل الذكريات بنجاح 💙" : "الموقع جاهز، أضف أول مادة من إدارة الموقع.");
+
+  status(subjects.length
+    ? "تم تحميل الذكريات بنجاح 💙"
+    : "الموقع جاهز. أضف أول مادة من لوحة الإدارة.");
+
   render();
 }
-function render(){
-  const select = $("mediaSubject");
-  select.innerHTML = subjects.map(s =>
-    `<option value="${s.id}">${safe(s.name)}</option>`).join("");
-  $("subjects").innerHTML = subjects.map(s=>{
-    const entries = media.filter(m=>String(m.subject_id)===String(s.id));
+
+function render() {
+  $("mediaSubject").innerHTML = subjects.map(s =>
+    `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)}</option>`
+  ).join("");
+
+  $("subjects").innerHTML = subjects.map(s => {
+    const entries = media.filter(m =>
+      String(m.subject_id) === String(s.id)
+    );
+
+    const cards = entries.map(m => {
+      const url = escapeHTML(m.url);
+      let content = "";
+
+      if (m.kind === "image") {
+        content = `<a href="${url}" target="_blank" rel="noopener">
+          <img src="${url}" alt="${escapeHTML(m.title)}" loading="lazy">
+        </a>`;
+      } else if (m.kind === "video") {
+        content = `<video controls preload="metadata" src="${url}"></video>`;
+      } else if (m.kind === "pdf") {
+        content = `<a href="${url}" target="_blank" rel="noopener">📄 فتح ملف PDF</a>`;
+      } else {
+        content = `<a href="${url}" target="_blank" rel="noopener">🔗 فتح الرابط</a>`;
+      }
+
+      return `<article class="item">
+        <strong>${escapeHTML(m.title || "بدون عنوان")}</strong>
+        <p>${content}</p>
+        ${isAdmin
+          ? `<button class="danger" onclick="deleteMedia('${escapeHTML(m.id)}')">🗑️ حذف المحتوى</button>`
+          : ""}
+      </article>`;
+    }).join("");
+
     return `<section class="subject">
-      <h3>📘 ${safe(s.name)}</h3>
-      ${isAdmin ? `<button class="danger" onclick="deleteSubject('${s.id}')">حذف المادة</button>` : ""}
-      <div class="items">${entries.map(m=>{
-        let content = "";
-        if(m.kind==="image") content=`<img src="${safe(m.url)}" alt="${safe(m.title)}">`;
-        else if(m.kind==="video") content=`<video controls src="${safe(m.url)}"></video>`;
-        else if(m.kind==="pdf") content=`<a href="${safe(m.url)}" target="_blank" rel="noopener">📄 فتح ملف PDF</a>`;
-        else content=`<a href="${safe(m.url)}" target="_blank" rel="noopener">🔗 فتح الرابط</a>`;
-        return `<article class="item"><strong>${safe(m.title||"بدون عنوان")}</strong><p>${content}</p>
-        ${isAdmin?`<button class="danger" onclick="deleteMedia('${m.id}')">حذف المحتوى</button>`:""}
-        </article>`;
-      }).join("")}</div>
-      ${entries.length===0?'<p class="small">لسه مفيش ذكريات في المادة دي.</p>':""}
+      <h3>📘 ${escapeHTML(s.name)}</h3>
+      ${isAdmin
+        ? `<button class="danger" onclick="deleteSubject('${escapeHTML(s.id)}')">🗑️ حذف المادة</button>`
+        : ""}
+      <div class="items">${cards}</div>
+      ${entries.length ? "" : '<p class="small">لسه مفيش محتوى في المادة دي.</p>'}
     </section>`;
   }).join("");
 }
-async function addSubject(){
-  const name = $("subjectName").value.trim();
-  if(!name) return alert("اكتب اسم المادة");
-  const {error} = await db.from("subjects").insert({name});
-  if(error) return alert("فشلت إضافة المادة: "+error.message);
-  $("subjectName").value="";
-  await loadData();
+
+async function addSubject() {
+  await run(async () => {
+    const name = $("subjectName").value.trim();
+    if (!name) return alert("اكتب اسم المادة");
+
+    const {error} = await db.from("subjects").insert({name});
+
+    if (error) {
+      alert("فشلت إضافة المادة:\n" + explainError(error));
+      return;
+    }
+
+    $("subjectName").value = "";
+    await loadData();
+  });
 }
-async function addMedia(){
-  const subjectId = $("mediaSubject").value;
-  const title = $("mediaTitle").value.trim();
-  const kind = $("mediaKind").value;
-  const file = $("mediaFile").files[0];
-  let url = $("mediaUrl").value.trim();
 
-  if(!subjectId) return alert("أضف مادة الأول");
-  if(kind==="link" && !url) return alert("اكتب الرابط");
-  if(kind!=="link" && !file && !url) return alert("اختار ملف أو اكتب رابطًا");
+function validateFile(file, kind) {
+  if (kind === "image" && !file.type.startsWith("image/")) {
+    return "اختار ملف صورة صحيح.";
+  }
+  if (kind === "video" && !file.type.startsWith("video/")) {
+    return "اختار ملف فيديو صحيح.";
+  }
+  if (kind === "pdf" &&
+      file.type !== "application/pdf" &&
+      !file.name.toLowerCase().endsWith(".pdf")) {
+    return "اختار ملف PDF صحيح.";
+  }
+  return "";
+}
 
-  if(file){
-    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-    const path = Date.now()+"_"+cleanName;
-    const upload = await db.storage.from(BUCKET).upload(path,file,{upsert:false});
-    if(upload.error) return alert("فشل رفع الملف: "+upload.error.message);
-    url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+async function addMedia() {
+  await run(async () => {
+    const subjectId = $("mediaSubject").value;
+    const kind = $("mediaKind").value;
+    const file = $("mediaFile").files[0];
+    let url = $("mediaUrl").value.trim();
+    const title = $("mediaTitle").value.trim();
+
+    if (!subjectId) return alert("أضف مادة الأول.");
+    if (kind === "link" && !url) return alert("اكتب الرابط.");
+    if (kind !== "link" && !file && !url) {
+      return alert("اختار ملفًا من الموبايل أو اكتب رابطًا.");
+    }
+
+    if (url && !/^https?:\/\/\S+$/i.test(url)) {
+      return alert("اكتب رابطًا يبدأ بـ https:// أو http://");
+    }
+
+    if (file) {
+      const fileError = validateFile(file, kind);
+      if (fileError) return alert(fileError);
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${safeName}`;
+
+      status("جاري رفع الملف...");
+
+      const {error: uploadError} = await db.storage
+        .from(BUCKET)
+        .upload(path, file, {upsert:false});
+
+      if (uploadError) {
+        status("فشل رفع الملف.");
+        alert("فشل رفع الملف:\n" + explainError(uploadError) +
+          "\n\nتأكد من وجود مساحة التخزين وصلاحيات الرفع.");
+        return;
+      }
+
+      url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    }
+
+    const {error} = await db.from("media").insert({
+      subject_id: Number(subjectId),
+      title: title || (file ? file.name : "رابط"),
+      kind,
+      url
+    });
+
+    if (error) {
+      alert("فشل حفظ المحتوى في جدول media:\n" + explainError(error) +
+        "\n\nإذا كان الملف قد رُفع بالفعل، فقد يظل موجودًا في التخزين.");
+      return;
+    }
+
+    $("mediaTitle").value = "";
+    $("mediaUrl").value = "";
+    $("mediaFile").value = "";
+
+    alert("تمت إضافة المحتوى بنجاح 💙");
+    await loadData();
+  });
+}
+
+function storagePath(url) {
+  try {
+    const parsed = new URL(url);
+    const marker = `/storage/v1/object/public/${BUCKET}/`;
+    const index = parsed.pathname.indexOf(marker);
+    if (index < 0) return null;
+    return decodeURIComponent(parsed.pathname.slice(index + marker.length));
+  } catch {
+    return null;
+  }
+}
+
+async function deleteMedia(id) {
+  if (!confirm("متأكد إنك عايز تحذف المحتوى ده؟")) return;
+
+  await run(async () => {
+    const entry = media.find(m => String(m.id) === String(id));
+    const {error} = await db.from("media").delete().eq("id", id);
+
+    if (error) {
+      alert("فشل حذف المحتوى:\n" + explainError(error));
+      return;
+    }
+
+    if (entry) {
+      const path = storagePath(entry.url);
+      if (path) {
+        const {error: storageError} = await db.storage
+          .from(BUCKET).remove([path]);
+
+        if (storageError) {
+          alert("تم حذف سجل المحتوى، لكن تعذر حذف الملف من التخزين:\n" +
+            explainError(storageError));
+        }
+      }
+    }
+
+    await loadData();
+  });
+}
+
+async function deleteSubject(id) {
+  if (!confirm("حذف المادة وكل محتواها؟")) return;
+
+  await run(async () => {
+    const entries = media.filter(m =>
+      String(m.subject_id) === String(id)
+    );
+
+    const {error: mediaError} = await db.from("media")
+      .delete().eq("subject_id", id);
+
+    if (mediaError) {
+      alert("فشل حذف محتوى المادة:\n" + explainError(mediaError));
+      return;
+    }
+
+    const {error} = await db.from("subjects").delete().eq("id", id);
+
+    if (error) {
+      alert("تم حذف سجلات المحتوى، لكن فشل حذف المادة:\n" +
+        explainError(error));
+      await loadData();
+      return;
+    }
+
+    const paths = entries.map(m => storagePath(m.url)).filter(Boolean);
+    if (paths.length) {
+      const {error: storageError} = await db.storage
+        .from(BUCKET).remove(paths);
+
+      if (storageError) {
+        alert("تم حذف المادة وسجلات المحتوى، لكن بعض الملفات قد تظل في التخزين:\n" +
+          explainError(storageError));
+      }
+    }
+
+    await loadData();
+  });
+}
+
+async function start() {
+  if (SUPABASE_KEY === "ضع_مفتاح_Publishable_هنا" ||
+      !SUPABASE_KEY.trim()) {
+    status("لازم تحط مفتاح Publishable الحقيقي في الكود أولًا.");
+    return;
   }
 
-  const {error} = await db.from("media").insert({
-    subject_id: Number(subjectId),
-    title: title || (file ? file.name : "رابط"),
-    kind,
-    url
-  });
-  if(error) return alert("فشلت إضافة المحتوى: "+error.message);
-  $("mediaTitle").value="";
-  $("mediaUrl").value="";
-  $("mediaFile").value="";
-  alert("تمت الإضافة بنجاح 💙");
-  await loadData();
+  try {
+    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    await loadData();
+  } catch (error) {
+    status("تعذر الاتصال:\n" + explainError(error));
+  }
 }
-async function deleteMedia(id){
-  if(!confirm("متأكد إنك عايز تحذف المحتوى ده؟")) return;
-  const {error} = await db.from("media").delete().eq("id",id);
-  if(error) return alert("فشل الحذف: "+error.message);
-  await loadData();
-}
-async function deleteSubject(id){
-  if(!confirm("حذف المادة وكل محتواها؟")) return;
-  const {error: mediaError} = await db.from("media").delete().eq("subject_id",id);
-  if(mediaError) return alert("فشل حذف محتوى المادة: "+mediaError.message);
-  const {error} = await db.from("subjects").delete().eq("id",id);
-  if(error) return alert("فشل حذف المادة: "+error.message);
-  await loadData();
-}
-loadData();
+
+start();
 </script>
 </body>
 </html>
