@@ -4,115 +4,208 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071b33">
 <title>الكيان | ذكرياتنا</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#0b1428;color:#fff;font-family:Arial,sans-serif}
-header{background:#142441;padding:28px 16px;text-align:center;border-bottom:2px solid #36d6c2}
-h1{margin:0;color:#48e0cb;font-size:29px}
-header p{color:#c3cfe2}
-main{max-width:900px;margin:auto;padding:18px}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap}
-input,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #344866}
-input{background:#101d35;color:white;min-width:0;flex:1}
-button{background:#1b3151;color:white;cursor:pointer}
-.primary{background:#36d6c2;color:#09202a;border:0;font-weight:bold}
-h2{font-size:21px}
-#subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}
-.subject{background:#162744;border:1px solid #344866;border-radius:16px;padding:23px 10px;text-align:center;cursor:pointer}
-.subject span{font-size:28px}
-.subject h3{margin-bottom:0}
-#message{color:#bdc9dc;margin:16px 0}
-#gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.card{background:#162744;border:1px solid #344866;border-radius:14px;padding:12px;overflow-wrap:anywhere}
-.card img,.card video{width:100%;max-height:220px;object-fit:contain}
-a{color:#48e0cb}
-.hidden{display:none}
-footer{text-align:center;color:#91a1bd;padding:30px}
+body{margin:0;font-family:Arial,sans-serif;background:#071b33;color:#fff}
+header{text-align:center;padding:28px 14px;background:linear-gradient(135deg,#0d3150,#087f8c)}
+h1{margin:0 0 8px;font-size:30px}
+header p{margin:0;color:#d8f5f5}
+main{max-width:850px;margin:auto;padding:16px}
+.panel{background:#102943;padding:16px;border-radius:16px;margin-bottom:16px}
+input,select,button{font:inherit;width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #34536d}
+input,select{background:#071b33;color:white}
+button{background:#08a6a6;color:white;border:0;font-weight:bold;cursor:pointer}
+button.secondary{background:#294761}
+button.danger{background:#b83d50}
+.hidden{display:none!important}
+.subject{background:#102943;border:1px solid #294761;padding:14px;border-radius:14px;margin:12px 0}
+.subject h3{margin:0 0 10px}
+.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.item{background:#071b33;padding:10px;border-radius:12px;overflow-wrap:anywhere}
+.item img,.item video{width:100%;border-radius:8px;max-height:230px;object-fit:contain}
+a{color:#66e4e4}
+.small{font-size:13px;color:#c3d5e4}
+#status{white-space:pre-wrap;line-height:1.7}
+footer{text-align:center;padding:20px;color:#9fb7c9}
 </style>
 </head>
 <body>
 <header>
-<h1>الكيان | ذكرياتنا ✨</h1>
-<p>ذكريات فصلنا في مكان واحد</p>
+<h1>الكيان | ذكرياتنا</h1>
+<p>ذكريات فصلنا في مكان واحد 💙</p>
 </header>
+
 <main>
-<div class="toolbar">
-<input id="search" placeholder="ابحث عن مادة...">
-<button class="primary" onclick="admin()">إدارة الموقع</button>
-<button id="add" class="hidden" onclick="addSubject()">＋ إضافة مادة</button>
+<div class="panel">
+<h3>📚 المواد الدراسية</h3>
+<p class="small">اختار مادة عشان تشوف الصور والفيديوهات والملفات والروابط.</p>
+<div id="status">جاري الاتصال بقاعدة البيانات...</div>
 </div>
-<p id="message">أهلًا بيكم في ذكرياتنا ❤️</p>
-<section id="home">
-<h2>📚 موادنا الدراسية</h2>
+
+<div id="adminLogin" class="panel">
+<h3>🔐 إدارة الموقع</h3>
+<p class="small">اكتب كود الإدارة لإظهار أدوات الإضافة والحذف.</p>
+<input id="adminCode" type="password" placeholder="كود الإدارة">
+<button onclick="login()">دخول الإدارة</button>
+</div>
+
+<div id="adminPanel" class="panel hidden">
+<h3>⚙️ إدارة المواد</h3>
+<input id="subjectName" placeholder="اسم المادة الجديدة">
+<button onclick="addSubject()">➕ إضافة مادة</button>
+<hr>
+<h3>إضافة محتوى لمادة</h3>
+<select id="mediaSubject"></select>
+<input id="mediaTitle" placeholder="عنوان الصورة أو الملف">
+<select id="mediaKind">
+<option value="image">صورة</option>
+<option value="video">فيديو</option>
+<option value="pdf">PDF</option>
+<option value="link">رابط</option>
+</select>
+<input id="mediaFile" type="file" accept="image/*,video/*,.pdf">
+<input id="mediaUrl" placeholder="رابط المحتوى (اختياري للملف، مطلوب للرابط)">
+<button onclick="addMedia()">⬆️ إضافة المحتوى</button>
+<button class="secondary" onclick="logout()">خروج من الإدارة</button>
+</div>
+
 <div id="subjects"></div>
-</section>
-<section id="page" class="hidden">
-<button onclick="back()">← كل المواد</button>
-<h2 id="subjectTitle"></h2>
-<button id="upload" class="hidden" onclick="addMemory()">＋ إضافة ذكرى</button>
-<div id="gallery"></div>
-</section>
 </main>
-<footer>الكيان | ذكرياتنا — مشروع فصلنا</footer>
+<footer>الكيان | ذكرياتنا — أولى تاني</footer>
+
 <script>
-const demoKey="kayan_demo_subjects_v1";
-let subjects=JSON.parse(localStorage.getItem(demoKey)||"[]");
-let selected=null,isAdmin=false;
-function save(){localStorage.setItem(demoKey,JSON.stringify(subjects))}
+const SUPABASE_URL = "https://ptwqqxvdligohhotreac.supabase.co";
+const SUPABASE_KEY = "ضع_هنا_مفتاح_Publishable_الخاص_بمشروع_Elkayan-new";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const BUCKET = "kayan-media";
+let isAdmin = false;
+let subjects = [];
+let media = [];
+
+const $ = id => document.getElementById(id);
+function status(msg){ $("status").textContent = msg; }
+function safe(text){
+  return String(text ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function login(){
+  if($("adminCode").value === "232850"){
+    isAdmin = true;
+    $("adminPanel").classList.remove("hidden");
+    $("adminLogin").classList.add("hidden");
+    render();
+  }else{
+    alert("كود الإدارة غير صحيح");
+  }
+}
+function logout(){
+  isAdmin = false;
+  $("adminPanel").classList.add("hidden");
+  $("adminLogin").classList.remove("hidden");
+  render();
+}
+async function loadData(){
+  status("جاري تحميل المواد...");
+  const s = await db.from("subjects").select("*").order("id");
+  if(s.error){
+    status("فشل تحميل المواد: " + s.error.message +
+      "\nتأكد من إعداد جدول subjects وصلاحيات القراءة في Supabase.");
+    return;
+  }
+  subjects = s.data || [];
+  const m = await db.from("media").select("*").order("id",{ascending:false});
+  if(m.error){
+    status("المواد اتصلت، لكن تحميل المحتوى فشل: " + m.error.message +
+      "\nتأكد من إعداد جدول media وصلاحياته.");
+    return;
+  }
+  media = m.data || [];
+  status(subjects.length ? "تم تحميل الذكريات بنجاح 💙" : "الموقع جاهز، أضف أول مادة من إدارة الموقع.");
+  render();
+}
 function render(){
- const q=document.getElementById("search").value.trim().toLowerCase();
- const list=subjects.filter(s=>s.name.toLowerCase().includes(q));
-  document.getElementById("subjects").innerHTML=list.length?list.map(s=>`
- <div class="subject">
-   <div onclick="openSubject('${s.id}')" style="cursor:pointer">
-     <span>📚</span>
-     <h3>${escapeText(s.name)}</h3>
-   </div>
-   ${isAdmin?`<button onclick="deleteSubject('${s.id}')">🗑️ حذف المادة</button>`:""}
- </div>
- `).join(""):'<p>المواد هتظهر هنا بعد إضافتها.</p>';
+  const select = $("mediaSubject");
+  select.innerHTML = subjects.map(s =>
+    `<option value="${s.id}">${safe(s.name)}</option>`).join("");
+  $("subjects").innerHTML = subjects.map(s=>{
+    const entries = media.filter(m=>String(m.subject_id)===String(s.id));
+    return `<section class="subject">
+      <h3>📘 ${safe(s.name)}</h3>
+      ${isAdmin ? `<button class="danger" onclick="deleteSubject('${s.id}')">حذف المادة</button>` : ""}
+      <div class="items">${entries.map(m=>{
+        let content = "";
+        if(m.kind==="image") content=`<img src="${safe(m.url)}" alt="${safe(m.title)}">`;
+        else if(m.kind==="video") content=`<video controls src="${safe(m.url)}"></video>`;
+        else if(m.kind==="pdf") content=`<a href="${safe(m.url)}" target="_blank" rel="noopener">📄 فتح ملف PDF</a>`;
+        else content=`<a href="${safe(m.url)}" target="_blank" rel="noopener">🔗 فتح الرابط</a>`;
+        return `<article class="item"><strong>${safe(m.title||"بدون عنوان")}</strong><p>${content}</p>
+        ${isAdmin?`<button class="danger" onclick="deleteMedia('${m.id}')">حذف المحتوى</button>`:""}
+        </article>`;
+      }).join("")}</div>
+      ${entries.length===0?'<p class="small">لسه مفيش ذكريات في المادة دي.</p>':""}
+    </section>`;
+  }).join("");
 }
-function escapeText(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function admin(){
- if(isAdmin){isAdmin=false;document.getElementById("add").classList.add("hidden");document.getElementById("upload").classList.add("hidden");document.querySelector('button[onclick="admin()"]').textContent="إدارة الموقع";render();return}
- const code=prompt("اكتب كود الإدارة");
- if(code!=="232850"){if(code!==null)alert("كود الإدارة غير صحيح");return}
- isAdmin=true;document.getElementById("add").classList.remove("hidden");document.getElementById("upload").classList.remove("hidden");document.querySelector('button[onclick="admin()"]').textContent="خروج الإدارة";render();
+async function addSubject(){
+  const name = $("subjectName").value.trim();
+  if(!name) return alert("اكتب اسم المادة");
+  const {error} = await db.from("subjects").insert({name});
+  if(error) return alert("فشلت إضافة المادة: "+error.message);
+  $("subjectName").value="";
+  await loadData();
 }
-function addSubject(){
- const name=prompt("اسم المادة الجديدة");if(!name||!name.trim())return;
- subjects.push({id:String(Date.now()),name:name.trim(),items:[]});save();render();
+async function addMedia(){
+  const subjectId = $("mediaSubject").value;
+  const title = $("mediaTitle").value.trim();
+  const kind = $("mediaKind").value;
+  const file = $("mediaFile").files[0];
+  let url = $("mediaUrl").value.trim();
+
+  if(!subjectId) return alert("أضف مادة الأول");
+  if(kind==="link" && !url) return alert("اكتب الرابط");
+  if(kind!=="link" && !file && !url) return alert("اختار ملف أو اكتب رابطًا");
+
+  if(file){
+    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+    const path = Date.now()+"_"+cleanName;
+    const upload = await db.storage.from(BUCKET).upload(path,file,{upsert:false});
+    if(upload.error) return alert("فشل رفع الملف: "+upload.error.message);
+    url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+  }
+
+  const {error} = await db.from("media").insert({
+    subject_id: Number(subjectId),
+    title: title || (file ? file.name : "رابط"),
+    kind,
+    url
+  });
+  if(error) return alert("فشلت إضافة المحتوى: "+error.message);
+  $("mediaTitle").value="";
+  $("mediaUrl").value="";
+  $("mediaFile").value="";
+  alert("تمت الإضافة بنجاح 💙");
+  await loadData();
 }
-function openSubject(id){
- selected=subjects.find(s=>s.id===id);if(!selected)return;
- document.getElementById("home").classList.add("hidden");document.getElementById("page").classList.remove("hidden");
- document.getElementById("subjectTitle").textContent=selected.name;renderItems();
+async function deleteMedia(id){
+  if(!confirm("متأكد إنك عايز تحذف المحتوى ده؟")) return;
+  const {error} = await db.from("media").delete().eq("id",id);
+  if(error) return alert("فشل الحذف: "+error.message);
+  await loadData();
 }
-function renderItems(){
- document.getElementById("gallery").innerHTML=selected.items.length?selected.items.map((m,i)=>`<div class="card"><h3>${escapeText(m.title)}</h3>${m.kind==="link"?`<a href="${escapeText(m.url)}" target="_blank" rel="noopener">فتح الرابط</a>`:m.kind==="image"?`<img src="${m.data}" alt="">`:m.kind==="video"?`<video src="${m.data}" controls></video>`:`<a href="${m.data}" target="_blank">فتح ملف PDF</a>`}${isAdmin?`<p><button onclick="deleteMemory(${i})">حذف</button></p>`:""}</div>`).join(""):'<p>لسه مفيش ذكريات في المادة دي.</p>';
+async function deleteSubject(id){
+  if(!confirm("حذف المادة وكل محتواها؟")) return;
+  const {error: mediaError} = await db.from("media").delete().eq("subject_id",id);
+  if(mediaError) return alert("فشل حذف محتوى المادة: "+mediaError.message);
+  const {error} = await db.from("subjects").delete().eq("id",id);
+  if(error) return alert("فشل حذف المادة: "+error.message);
+  await loadData();
 }
-function addMemory(){
- const title=prompt("عنوان الذكرى");if(!title)return;
- const kind=prompt("اكتب النوع: image للصورة، video للفيديو، pdf لملف PDF، link للرابط");
- if(!["image","video","pdf","link"].includes(kind)){alert("النوع غير صحيح");return}
- if(kind==="link"){const url=prompt("الصق الرابط");if(!url)return;selected.items.push({title,kind,url});save();renderItems();return}
- const picker=document.createElement("input");picker.type="file";picker.accept=kind==="image"?"image/*":kind==="video"?"video/*":".pdf,application/pdf";
- picker.onchange=()=>{const file=picker.files[0];if(!file)return;if(file.size>2*1024*1024){alert("الملف أكبر من 2 ميجابايت في النسخة التجريبية. الملفات الأونلاين هنضيفها بعد ربط Supabase.");return}
- const reader=new FileReader();reader.onload=()=>{selected.items.push({title,kind,data:reader.result});save();renderItems()};reader.readAsDataURL(file)};
- picker.click();
-}
-function deleteMemory(i){if(confirm("تحذف الذكرى؟")){selected.items.splice(i,1);save();renderItems()}}
-function back(){document.getElementById("page").classList.add("hidden");document.getElementById("home").classList.remove("hidden");selected=null}
-document.getElementById("search").addEventListener("input",render);
-function deleteSubject(id){
- if(!confirm("متأكد إنك عايز تحذف المادة وكل ذكرياتها؟")) return;
- subjects=subjects.filter(s=>s.id!==id);
- save();
- if(selected && selected.id===id) back();
- render();
- }
- render();
+loadData();
 </script>
 </body>
 </html>
