@@ -63,7 +63,15 @@ function save(){localStorage.setItem(demoKey,JSON.stringify(subjects))}
 function render(){
  const q=document.getElementById("search").value.trim().toLowerCase();
  const list=subjects.filter(s=>s.name.toLowerCase().includes(q));
- document.getElementById("subjects").innerHTML=list.length?list.map(s=>`<div class="subject" onclick="openSubject('${s.id}')"><span>📚</span><h3>${escapeText(s.name)}</h3></div>`).join(""):'<p>المواد هتظهر هنا بعد إضافتها.</p>';
+  document.getElementById("subjects").innerHTML=list.length?list.map(s=>`
+ <div class="subject">
+   <div onclick="openSubject('${s.id}')" style="cursor:pointer">
+     <span>📚</span>
+     <h3>${escapeText(s.name)}</h3>
+   </div>
+   ${isAdmin?`<button onclick="deleteSubject('${s.id}')">🗑️ حذف المادة</button>`:""}
+ </div>
+ `).join(""):'<p>المواد هتظهر هنا بعد إضافتها.</p>';
 }
 function escapeText(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function admin(){
@@ -97,7 +105,14 @@ function addMemory(){
 function deleteMemory(i){if(confirm("تحذف الذكرى؟")){selected.items.splice(i,1);save();renderItems()}}
 function back(){document.getElementById("page").classList.add("hidden");document.getElementById("home").classList.remove("hidden");selected=null}
 document.getElementById("search").addEventListener("input",render);
-render();
+function deleteSubject(id){
+ if(!confirm("متأكد إنك عايز تحذف المادة وكل ذكرياتها؟")) return;
+ subjects=subjects.filter(s=>s.id!==id);
+ save();
+ if(selected && selected.id===id) back();
+ render();
+ }
+ render();
 </script>
 </body>
 </html>
