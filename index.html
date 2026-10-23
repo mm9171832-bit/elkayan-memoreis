@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الكيان | ذكرياتنا</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1428;color:#fff;font-family:Arial,sans-serif}
+header{background:#142441;padding:28px 16px;text-align:center;border-bottom:2px solid #36d6c2}
+h1{margin:0;color:#48e0cb;font-size:29px}
+header p{color:#c3cfe2}
+main{max-width:900px;margin:auto;padding:18px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+input,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #344866}
+input{background:#101d35;color:white;min-width:0;flex:1}
+button{background:#1b3151;color:white;cursor:pointer}
+.primary{background:#36d6c2;color:#09202a;border:0;font-weight:bold}
+h2{font-size:21px}
+#subjects{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}
+.subject{background:#162744;border:1px solid #344866;border-radius:16px;padding:23px 10px;text-align:center;cursor:pointer}
+.subject span{font-size:28px}
+.subject h3{margin-bottom:0}
+#message{color:#bdc9dc;margin:16px 0}
+#gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.card{background:#162744;border:1px solid #344866;border-radius:14px;padding:12px;overflow-wrap:anywhere}
+.card img,.card video{width:100%;max-height:220px;object-fit:contain}
+a{color:#48e0cb}
+.hidden{display:none}
+footer{text-align:center;color:#91a1bd;padding:30px}
+</style>
+</head>
+<body>
+<header>
+<h1>الكيان | ذكرياتنا ✨</h1>
+<p>ذكريات فصلنا في مكان واحد</p>
+</header>
+<main>
+<div class="toolbar">
+<input id="search" placeholder="ابحث عن مادة...">
+<button class="primary" onclick="admin()">إدارة الموقع</button>
+<button id="add" class="hidden" onclick="addSubject()">＋ إضافة مادة</button>
+</div>
+<p id="message">أهلًا بيكم في ذكرياتنا ❤️</p>
+<section id="home">
+<h2>📚 موادنا الدراسية</h2>
+<div id="subjects"></div>
+</section>
+<section id="page" class="hidden">
+<button onclick="back()">← كل المواد</button>
+<h2 id="subjectTitle"></h2>
+<button id="upload" class="hidden" onclick="addMemory()">＋ إضافة ذكرى</button>
+<div id="gallery"></div>
+</section>
+</main>
+<footer>الكيان | ذكرياتنا — مشروع فصلنا</footer>
+<script>
+const demoKey="kayan_demo_subjects_v1";
+let subjects=JSON.parse(localStorage.getItem(demoKey)||"[]");
+let selected=null,isAdmin=false;
+function save(){localStorage.setItem(demoKey,JSON.stringify(subjects))}
+function render(){
+ const q=document.getElementById("search").value.trim().toLowerCase();
+ const list=subjects.filter(s=>s.name.toLowerCase().includes(q));
+ document.getElementById("subjects").innerHTML=list.length?list.map(s=>`<div class="subject" onclick="openSubject('${s.id}')"><span>📚</span><h3>${escapeText(s.name)}</h3></div>`).join(""):'<p>المواد هتظهر هنا بعد إضافتها.</p>';
+}
+function escapeText(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function admin(){
+ if(isAdmin){isAdmin=false;document.getElementById("add").classList.add("hidden");document.getElementById("upload").classList.add("hidden");document.querySelector('button[onclick="admin()"]').textContent="إدارة الموقع";render();return}
+ const code=prompt("اكتب كود الإدارة");
+ if(code!=="232850"){if(code!==null)alert("كود الإدارة غير صحيح");return}
+ isAdmin=true;document.getElementById("add").classList.remove("hidden");document.getElementById("upload").classList.remove("hidden");document.querySelector('button[onclick="admin()"]').textContent="خروج الإدارة";render();
+}
+function addSubject(){
+ const name=prompt("اسم المادة الجديدة");if(!name||!name.trim())return;
+ subjects.push({id:String(Date.now()),name:name.trim(),items:[]});save();render();
+}
+function openSubject(id){
+ selected=subjects.find(s=>s.id===id);if(!selected)return;
+ document.getElementById("home").classList.add("hidden");document.getElementById("page").classList.remove("hidden");
+ document.getElementById("subjectTitle").textContent=selected.name;renderItems();
+}
+function renderItems(){
+ document.getElementById("gallery").innerHTML=selected.items.length?selected.items.map((m,i)=>`<div class="card"><h3>${escapeText(m.title)}</h3>${m.kind==="link"?`<a href="${escapeText(m.url)}" target="_blank" rel="noopener">فتح الرابط</a>`:m.kind==="image"?`<img src="${m.data}" alt="">`:m.kind==="video"?`<video src="${m.data}" controls></video>`:`<a href="${m.data}" target="_blank">فتح ملف PDF</a>`}${isAdmin?`<p><button onclick="deleteMemory(${i})">حذف</button></p>`:""}</div>`).join(""):'<p>لسه مفيش ذكريات في المادة دي.</p>';
+}
+function addMemory(){
+ const title=prompt("عنوان الذكرى");if(!title)return;
+ const kind=prompt("اكتب النوع: image للصورة، video للفيديو، pdf لملف PDF، link للرابط");
+ if(!["image","video","pdf","link"].includes(kind)){alert("النوع غير صحيح");return}
+ if(kind==="link"){const url=prompt("الصق الرابط");if(!url)return;selected.items.push({title,kind,url});save();renderItems();return}
+ const picker=document.createElement("input");picker.type="file";picker.accept=kind==="image"?"image/*":kind==="video"?"video/*":".pdf,application/pdf";
+ picker.onchange=()=>{const file=picker.files[0];if(!file)return;if(file.size>2*1024*1024){alert("الملف أكبر من 2 ميجابايت في النسخة التجريبية. الملفات الأونلاين هنضيفها بعد ربط Supabase.");return}
+ const reader=new FileReader();reader.onload=()=>{selected.items.push({title,kind,data:reader.result});save();renderItems()};reader.readAsDataURL(file)};
+ picker.click();
+}
+function deleteMemory(i){if(confirm("تحذف الذكرى؟")){selected.items.splice(i,1);save();renderItems()}}
+function back(){document.getElementById("page").classList.add("hidden");document.getElementById("home").classList.remove("hidden");selected=null}
+document.getElementById("search").addEventListener("input",render);
+render();
+</script>
+</body>
+</html>
