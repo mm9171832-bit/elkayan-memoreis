@@ -4,437 +4,789 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#071b33">
+<meta name="theme-color" content="#14213d">
 <title>الكيان | ذكرياتنا</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#071b33;color:#fff;font-family:Arial,sans-serif}
-header{text-align:center;padding:28px 14px;background:linear-gradient(135deg,#0d3150,#087f8c)}
-h1{margin:0 0 8px;font-size:29px}
-main{max-width:850px;margin:auto;padding:15px}
-.panel,.subject{background:#102943;padding:16px;border-radius:15px;margin-bottom:15px}
-input,select,button{width:100%;padding:12px;margin:6px 0;border:1px solid #34536d;border-radius:10px;font:inherit}
-input,select{background:#071b33;color:white}
-button{background:#08a6a6;color:white;border:0;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.55}
-.danger{background:#b83d50}
-.secondary{background:#294761}
-.hidden{display:none!important}
-.small{font-size:13px;color:#c3d5e4;line-height:1.8}
-#status{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}
-.items{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
-.item{background:#071b33;padding:10px;border-radius:12px;overflow-wrap:anywhere;min-width:0}
-.item img,.item video{width:100%;max-height:250px;object-fit:contain;border-radius:8px}
-a{color:#66e4e4;overflow-wrap:anywhere}
-hr{border-color:#34536d;margin:20px 0}
-footer{text-align:center;padding:20px;color:#9fb7c9}
+:root {
+  --navy:#14213d;
+  --blue:#2457a7;
+  --gold:#f2c14e;
+  --bg:#f4f6fb;
+  --white:#fff;
+  --text:#202b40;
+  --muted:#68758b;
+  --border:#e1e6ef;
+  --red:#c62828;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0;
+  font-family:Tahoma,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+header {
+  color:white;
+  padding:30px 16px 25px;
+  text-align:center;
+  background:linear-gradient(135deg,#14213d,#2457a7);
+  border-radius:0 0 28px 28px;
+}
+.logo {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:64px;height:64px;
+  border-radius:20px;
+  background:var(--gold);
+  color:var(--navy);
+  font-size:30px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+header h1 { margin:5px 0 10px;font-size:29px; }
+header p { margin:0;color:#e5eaf5;line-height:1.8; }
+main { width:min(100% - 24px,950px);margin:22px auto 40px; }
+.panel {
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:0 5px 20px #14213d08;
+}
+h2 { margin:0 0 15px;font-size:20px; }
+input,select,button {
+  font:inherit;
+  width:100%;
+  padding:12px;
+  border-radius:11px;
+}
+input,select {
+  border:1px solid #cbd3e1;
+  background:white;
+  color:var(--text);
+  margin-bottom:10px;
+}
+button {
+  border:0;
+  cursor:pointer;
+  background:var(--blue);
+  color:white;
+  font-weight:bold;
+  margin:4px 0;
+}
+button:disabled { opacity:.55;cursor:wait; }
+button.secondary { background:#e9eef8;color:var(--navy); }
+button.danger { background:#fff0f0;color:var(--red); }
+button.gold { background:var(--gold);color:var(--navy); }
+.row { display:flex;gap:10px;align-items:center; }
+.row > * { flex:1;min-width:0; }
+.subjects {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:10px;
+}
+.subject-card {
+  padding:16px 12px;
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:15px;
+  text-align:center;
+  cursor:pointer;
+  min-width:0;
+}
+.subject-card.active {
+  background:#eaf0ff;
+  border:2px solid var(--blue);
+}
+.subject-card .symbol { font-size:26px;margin-bottom:8px; }
+.subject-card .subject-name {
+  font-weight:bold;
+  overflow-wrap:anywhere;
+}
+.subject-card .count { color:var(--muted);font-size:12px;margin-top:7px; }
+#status {
+  display:none;
+  padding:12px;
+  margin-bottom:15px;
+  border-radius:10px;
+  line-height:1.7;
+  overflow-wrap:anywhere;
+}
+#status.show { display:block; }
+#status.error { background:#fff0f0;color:#a21d1d; }
+#status.success { background:#eaf8ef;color:#176536; }
+#status.info { background:#eaf0ff;color:#173f82; }
+#adminArea { display:none; }
+#loginArea { display:none; }
+#mediaGrid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:13px;
+}
+.media-card {
+  min-width:0;
+  overflow:hidden;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:white;
+}
+.media-preview {
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  display:block;
+  background:#edf1f7;
+}
+.media-placeholder {
+  height:150px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-size:45px;
+  background:#edf1f7;
+}
+.media-info { padding:12px; }
+.media-info h3 {
+  font-size:15px;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+  margin:0 0 10px;
+}
+.media-info a {
+  display:block;
+  color:var(--blue);
+  text-decoration:none;
+  padding:9px 0;
+  font-weight:bold;
+  overflow-wrap:anywhere;
+}
+.media-info button { font-size:13px; }
+.empty {
+  padding:24px 10px;
+  text-align:center;
+  color:var(--muted);
+  line-height:1.9;
+}
+.small { color:var(--muted);font-size:13px;line-height:1.8; }
+footer {
+  text-align:center;
+  padding:15px;
+  color:var(--muted);
+  font-size:12px;
+}
+.hidden { display:none!important; }
+@media(max-width:480px) {
+  header h1 { font-size:25px; }
+  .panel { padding:14px; }
+  .row { flex-direction:column;gap:0; }
+  .row > * { width:100%; }
+}
 </style>
 </head>
+
 <body>
 <header>
-<h1>✦ الكيان | ذكرياتنا</h1>
-<p>ذكرياتنا وموادنا في مكان واحد 💙</p>
+  <div class="logo">ك</div>
+  <h1>الكيان | ذكرياتنا</h1>
+  <p>ذكريات أولى تاني.. لحظات بتجمعنا وبتفضل معانا ❤️</p>
 </header>
 
 <main>
-<section class="panel">
-<h3>📚 مواد الفصل</h3>
-<p class="small">اختار المادة وشوف ذكرياتنا. تقدر تفتح الصور والفيديوهات وملفات PDF والروابط.</p>
-<div id="status">جاري الاتصال بقاعدة البيانات...</div>
-</section>
+  <div id="status" role="status"></div>
 
-<section class="panel" id="loginPanel">
-<h3>🔐 إدارة الموقع</h3>
-<input id="adminCode" type="password" placeholder="كود الإدارة" autocomplete="off">
-<button onclick="login()">دخول الإدارة</button>
-</section>
+  <section class="panel">
+    <h2>📚 المواد الدراسية</h2>
+    <div id="subjects" class="subjects">
+      <div class="empty">جاري تحميل المواد...</div>
+    </div>
+  </section>
 
-<section class="panel hidden" id="adminPanel">
-<h3>⚙️ لوحة الإدارة</h3>
-<button class="secondary" onclick="logout()">خروج من الإدارة</button>
-<hr>
-<h3>➕ إضافة مادة</h3>
-<input id="subjectName" placeholder="اسم المادة">
-<button onclick="addSubject()">حفظ المادة</button>
+  <section class="panel">
+    <div class="row">
+      <div>
+        <h2 id="mediaHeading">🖼️ الذكريات</h2>
+        <div class="small">اختار مادة علشان تشوف الصور والفيديوهات والملفات والروابط.</div>
+      </div>
+      <button id="clearSelection" class="secondary" type="button">عرض الكل</button>
+    </div>
+    <div id="mediaGrid">
+      <div class="empty">جاري تحميل الذكريات...</div>
+    </div>
+  </section>
 
-<hr>
-<h3>📷 إضافة محتوى</h3>
-<label for="mediaSubject">المادة</label>
-<select id="mediaSubject"></select>
+  <section class="panel">
+    <h2>🔐 إدارة الموقع</h2>
+    <p class="small">تسجيل الدخول مخصص للإدارة. الزوار يقدروا يشوفوا الذكريات من غير حساب.</p>
 
-<label for="mediaKind">نوع المحتوى</label>
-<select id="mediaKind" onchange="updateFileType()">
-<option value="image">صورة من الموبايل</option>
-<option value="video">فيديو من الموبايل</option>
-<option value="pdf">ملف PDF من الموبايل</option>
-<option value="link">رابط</option>
-</select>
+    <div id="loginArea">
+      <form id="loginForm">
+        <label for="email">البريد الإلكتروني للإدارة</label>
+        <input id="email" type="email" autocomplete="username"
+               placeholder="البريد الإلكتروني" required>
+        <label for="password">كلمة المرور</label>
+        <input id="password" type="password" autocomplete="current-password"
+               placeholder="كلمة المرور" required>
+        <button id="loginButton" type="submit">دخول الإدارة</button>
+      </form>
+    </div>
 
-<input id="mediaTitle" placeholder="عنوان المحتوى (اختياري)">
-<label for="mediaFile">اختيار ملف من الجهاز</label>
-<input id="mediaFile" type="file" accept="image/*">
+    <div id="adminArea">
+      <p>✅ تم تسجيل الدخول للإدارة</p>
+      <button id="logoutButton" class="secondary" type="button">تسجيل الخروج</button>
+      <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
 
-<p class="small">للصور والفيديوهات وملفات PDF: اختار الملف من جهازك. ولإضافة رابط، اختار «رابط» واكتب الرابط. يمكنك أيضًا استخدام رابط مباشر لمحتوى موجود بالفعل.</p>
-<input id="mediaUrl" type="url" placeholder="رابط المحتوى (للروابط أو المحتوى الموجود بالفعل)">
-<button onclick="addMedia()">⬆️ رفع المحتوى وحفظه</button>
-</section>
+      <h2>➕ إضافة مادة</h2>
+      <form id="subjectForm">
+        <input id="subjectName" maxlength="80"
+               placeholder="اسم المادة الجديدة" required>
+        <button type="submit">إضافة المادة</button>
+      </form>
 
-<div id="subjects"></div>
+      <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+
+      <h2>📤 إضافة صورة أو فيديو أو PDF</h2>
+      <form id="uploadForm">
+        <label for="uploadSubject">المادة</label>
+        <select id="uploadSubject" required>
+          <option value="">اختار المادة</option>
+        </select>
+        <label for="mediaTitle">اسم الذكرى (اختياري)</label>
+        <input id="mediaTitle" maxlength="150" placeholder="مثلاً: حصة البرمجة">
+        <label for="mediaFile">اختار الملف (حد أقصى 50 ميجابايت)</label>
+        <input id="mediaFile" type="file"
+               accept="image/*,video/*,application/pdf" required>
+        <button id="uploadButton" type="submit">رفع الملف</button>
+      </form>
+
+      <hr style="border:0;border-top:1px solid var(--border);margin:18px 0">
+
+      <h2>🔗 إضافة رابط</h2>
+      <form id="linkForm">
+        <label for="linkSubject">المادة</label>
+        <select id="linkSubject" required>
+          <option value="">اختار المادة</option>
+        </select>
+        <input id="linkTitle" maxlength="150"
+               placeholder="اسم الرابط" required>
+        <input id="linkUrl" type="url"
+               placeholder="https://..." required>
+        <label for="linkKind">نوع الرابط</label>
+        <select id="linkKind">
+          <option value="video">فيديو</option>
+          <option value="link">رابط خارجي أو ملف</option>
+        </select>
+        <button type="submit">إضافة الرابط</button>
+      </form>
+
+      <p class="small">
+        تقدر تحذف أي مادة أو ذكرى أضفتها من أزرار الحذف الظاهرة للإدارة.
+        حذف المادة يحذف ذكرياتها المرتبطة بها كمان.
+      </p>
+    </div>
+  </section>
 </main>
-<footer>الكيان © ذكرياتنا تجمعنا 💙</footer>
+
+<footer>الكيان | ذكرياتنا — أولى تاني ❤️</footer>
 
 <script>
 "use strict";
 
-const SUPABASE_URL = "https://ptwqqxvdligohhotreac.supabase.co";
-
-const SUPABASE_KEY = "sb_publishable_dlOf_WVqe3OMLPGXkM2w5Q_g_ERYO-q";
-
+/* بيانات مشروع Supabase الجديد */
+const SUPABASE_URL = "https://zqrgyiwtlncdqscuxdrq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_eBJcQtbPskClChiybApm5Q_7KjIduX3";
 const BUCKET = "kayan-media";
-const ADMIN_CODE = "232850";
+
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let subjects = [];
+let mediaItems = [];
+let selectedSubject = null;
+let isAdmin = false;
 
 const $ = id => document.getElementById(id);
-let db = null;
-let isAdmin = false;
-let subjects = [];
-let media = [];
-let busy = false;
 
-function status(message) {
-  $("status").textContent = message;
+function message(text, type = "info") {
+  const box = $("status");
+  box.textContent = text;
+  box.className = "show " + type;
+  box.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function clearMessage() {
+  $("status").className = "";
+  $("status").textContent = "";
 }
 
 function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, c => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;",
-    '"':"&quot;", "'":"&#39;"
-  })[c]);
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[char]);
 }
 
-function setBusy(value) {
-  busy = value;
-  document.querySelectorAll("#adminPanel button").forEach(button => {
-    button.disabled = value;
-  });
-}
-
-function explainError(error) {
-  if (!error) return "خطأ غير معروف";
-  return [error.message, error.details, error.hint, error.code]
-    .filter(Boolean).join("\n");
-}
-
-async function run(action) {
-  if (busy) return;
-  setBusy(true);
+function safeURL(value) {
   try {
-    await action();
-  } catch (error) {
-    alert("حصل خطأ:\n" + explainError(error));
-  } finally {
-    setBusy(false);
+    const u = new URL(value);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.href : "";
+  } catch {
+    return "";
   }
 }
 
-function login() {
-  if ($("adminCode").value !== ADMIN_CODE) {
-    alert("كود الإدارة غير صحيح");
-    return;
-  }
-
-  isAdmin = true;
-  $("adminPanel").classList.remove("hidden");
-  $("loginPanel").classList.add("hidden");
-  $("adminCode").value = "";
-  render();
+function fileIcon(kind) {
+  if (kind === "image") return "🖼️";
+  if (kind === "video") return "🎬";
+  if (kind === "pdf") return "📄";
+  return "🔗";
 }
 
-function logout() {
-  isAdmin = false;
-  $("adminPanel").classList.add("hidden");
-  $("loginPanel").classList.remove("hidden");
-  render();
+function subjectName(id) {
+  return subjects.find(s => String(s.id) === String(id))?.name || "";
 }
 
-function updateFileType() {
-  const kind = $("mediaKind").value;
-  const file = $("mediaFile");
-
-  file.value = "";
-
-  if (kind === "image") file.accept = "image/*";
-  else if (kind === "video") file.accept = "video/*";
-  else if (kind === "pdf") file.accept = ".pdf,application/pdf";
-  else file.accept = "";
-}
-
-async function loadData() {
-  status("جاري تحميل المواد...");
-
-  const s = await db.from("subjects")
-    .select("id,name,created_at")
-    .order("id", {ascending:true});
-
-  if (s.error) {
-    status("فشل تحميل المواد:\n" + explainError(s.error));
-    return;
-  }
-
-  const m = await db.from("media")
-    .select("id,subject_id,title,kind,url,created_at")
-    .order("id", {ascending:false});
-
-  if (m.error) {
-    status("تم تحميل المواد، لكن فشل تحميل المحتوى:\n" +
-      explainError(m.error));
-    return;
-  }
-
-  subjects = s.data || [];
-  media = m.data || [];
-
-  status(subjects.length
-    ? "تم تحميل الذكريات بنجاح 💙"
-    : "الموقع جاهز. أضف أول مادة من لوحة الإدارة.");
-
-  render();
-}
-
-function render() {
-  $("mediaSubject").innerHTML = subjects.map(s =>
-    `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)}</option>`
-  ).join("");
-
-  $("subjects").innerHTML = subjects.map(s => {
-    const entries = media.filter(m =>
-      String(m.subject_id) === String(s.id)
-    );
-
-    const cards = entries.map(m => {
-      const url = escapeHTML(m.url);
-      let content = "";
-
-      if (m.kind === "image") {
-        content = `<a href="${url}" target="_blank" rel="noopener">
-          <img src="${url}" alt="${escapeHTML(m.title)}" loading="lazy">
-        </a>`;
-      } else if (m.kind === "video") {
-        content = `<video controls preload="metadata" src="${url}"></video>`;
-      } else if (m.kind === "pdf") {
-        content = `<a href="${url}" target="_blank" rel="noopener">📄 فتح ملف PDF</a>`;
-      } else {
-        content = `<a href="${url}" target="_blank" rel="noopener">🔗 فتح الرابط</a>`;
-      }
-
-      return `<article class="item">
-        <strong>${escapeHTML(m.title || "بدون عنوان")}</strong>
-        <p>${content}</p>
-        ${isAdmin
-          ? `<button class="danger" onclick="deleteMedia('${escapeHTML(m.id)}')">🗑️ حذف المحتوى</button>`
-          : ""}
-      </article>`;
-    }).join("");
-
-    return `<section class="subject">
-      <h3>📘 ${escapeHTML(s.name)}</h3>
-      ${isAdmin
-        ? `<button class="danger" onclick="deleteSubject('${escapeHTML(s.id)}')">🗑️ حذف المادة</button>`
-        : ""}
-      <div class="items">${cards}</div>
-      ${entries.length ? "" : '<p class="small">لسه مفيش محتوى في المادة دي.</p>'}
-    </section>`;
-  }).join("");
-}
-
-async function addSubject() {
-  await run(async () => {
-    const name = $("subjectName").value.trim();
-    if (!name) return alert("اكتب اسم المادة");
-
-    const {error} = await db.from("subjects").insert({name});
-
-    if (error) {
-      alert("فشلت إضافة المادة:\n" + explainError(error));
-      return;
-    }
-
-    $("subjectName").value = "";
-    await loadData();
-  });
-}
-
-function validateFile(file, kind) {
-  if (kind === "image" && !file.type.startsWith("image/")) {
-    return "اختار ملف صورة صحيح.";
-  }
-  if (kind === "video" && !file.type.startsWith("video/")) {
-    return "اختار ملف فيديو صحيح.";
-  }
-  if (kind === "pdf" &&
-      file.type !== "application/pdf" &&
-      !file.name.toLowerCase().endsWith(".pdf")) {
-    return "اختار ملف PDF صحيح.";
-  }
-  return "";
-}
-
-async function addMedia() {
-  await run(async () => {
-    const subjectId = $("mediaSubject").value;
-    const kind = $("mediaKind").value;
-    const file = $("mediaFile").files[0];
-    let url = $("mediaUrl").value.trim();
-    const title = $("mediaTitle").value.trim();
-
-    if (!subjectId) return alert("أضف مادة الأول.");
-    if (kind === "link" && !url) return alert("اكتب الرابط.");
-    if (kind !== "link" && !file && !url) {
-      return alert("اختار ملفًا من الموبايل أو اكتب رابطًا.");
-    }
-
-    if (url && !/^https?:\/\/\S+$/i.test(url)) {
-      return alert("اكتب رابطًا يبدأ بـ https:// أو http://");
-    }
-
-    if (file) {
-      const fileError = validateFile(file, kind);
-      if (fileError) return alert(fileError);
-
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${Date.now()}_${Math.random().toString(36).slice(2)}_${safeName}`;
-
-      status("جاري رفع الملف...");
-
-      const {error: uploadError} = await db.storage
-        .from(BUCKET)
-        .upload(path, file, {upsert:false});
-
-      if (uploadError) {
-        status("فشل رفع الملف.");
-        alert("فشل رفع الملف:\n" + explainError(uploadError) +
-          "\n\nتأكد من وجود مساحة التخزين وصلاحيات الرفع.");
-        return;
-      }
-
-      url = db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-    }
-
-    const {error} = await db.from("media").insert({
-      subject_id: Number(subjectId),
-      title: title || (file ? file.name : "رابط"),
-      kind,
-      url
-    });
-
-    if (error) {
-      alert("فشل حفظ المحتوى في جدول media:\n" + explainError(error) +
-        "\n\nإذا كان الملف قد رُفع بالفعل، فقد يظل موجودًا في التخزين.");
-      return;
-    }
-
-    $("mediaTitle").value = "";
-    $("mediaUrl").value = "";
-    $("mediaFile").value = "";
-
-    alert("تمت إضافة المحتوى بنجاح 💙");
-    await loadData();
-  });
-}
-
-function storagePath(url) {
+function getStoragePath(url) {
   try {
     const parsed = new URL(url);
-    const marker = `/storage/v1/object/public/${BUCKET}/`;
+    const marker = "/storage/v1/object/public/" + BUCKET + "/";
     const index = parsed.pathname.indexOf(marker);
-    if (index < 0) return null;
+    if (index === -1) return null;
     return decodeURIComponent(parsed.pathname.slice(index + marker.length));
   } catch {
     return null;
   }
 }
 
-async function deleteMedia(id) {
-  if (!confirm("متأكد إنك عايز تحذف المحتوى ده؟")) return;
+async function removeStoredFile(url) {
+  const path = getStoragePath(url);
+  if (!path) return true;
 
-  await run(async () => {
-    const entry = media.find(m => String(m.id) === String(id));
-    const {error} = await db.from("media").delete().eq("id", id);
+  const {error} = await db.storage.from(BUCKET).remove([path]);
+  if (error) throw error;
+  return true;
+}
 
-    if (error) {
-      alert("فشل حذف المحتوى:\n" + explainError(error));
-      return;
-    }
+async function loadSubjects() {
+  const {data, error} = await db
+    .from("subjects")
+    .select("id,name,created_at")
+    .order("name", {ascending:true});
 
-    if (entry) {
-      const path = storagePath(entry.url);
-      if (path) {
-        const {error: storageError} = await db.storage
-          .from(BUCKET).remove([path]);
+  if (error) throw error;
+  subjects = data || [];
+  renderSubjects();
+  updateSubjectSelects();
+}
 
-        if (storageError) {
-          alert("تم حذف سجل المحتوى، لكن تعذر حذف الملف من التخزين:\n" +
-            explainError(storageError));
-        }
+async function loadMedia() {
+  let query = db.from("media")
+    .select("id,subject_id,title,kind,url,created_at")
+    .order("created_at", {ascending:false});
+
+  if (selectedSubject !== null) {
+    query = query.eq("subject_id", selectedSubject);
+  }
+
+  const {data, error} = await query;
+  if (error) throw error;
+
+  mediaItems = data || [];
+  renderMedia();
+}
+
+function renderSubjects() {
+  const box = $("subjects");
+
+  if (!subjects.length) {
+    box.innerHTML = '<div class="empty">لسه مفيش مواد مضافة.</div>';
+    return;
+  }
+
+  box.innerHTML = subjects.map(s => {
+    const count = mediaItems.filter(m => String(m.subject_id) === String(s.id)).length;
+    return `
+      <div class="subject-card ${String(selectedSubject) === String(s.id) ? "active" : ""}"
+           data-subject="${escapeHTML(s.id)}">
+        <div class="symbol">📘</div>
+        <div class="subject-name">${escapeHTML(s.name)}</div>
+        <div class="count">افتح المادة</div>
+        ${isAdmin ? `<button class="danger delete-subject" data-id="${escapeHTML(s.id)}" type="button">حذف المادة</button>` : ""}
+      </div>
+    `;
+  }).join("");
+
+  box.querySelectorAll(".subject-card").forEach(card => {
+    card.addEventListener("click", async event => {
+      if (event.target.closest(".delete-subject")) return;
+      selectedSubject = card.dataset.subject;
+      $("mediaHeading").textContent = "🖼️ " + subjectName(selectedSubject);
+      renderSubjects();
+      try {
+        await loadMedia();
+      } catch (e) {
+        message("فشل تحميل الذكريات: " + e.message, "error");
       }
+    });
+  });
+
+  box.querySelectorAll(".delete-subject").forEach(button => {
+    button.addEventListener("click", async event => {
+      event.stopPropagation();
+      await deleteSubject(button.dataset.id);
+    });
+  });
+}
+
+function updateSubjectSelects() {
+  const selects = [$("uploadSubject"), $("linkSubject")];
+
+  for (const select of selects) {
+    const previous = select.value;
+    select.innerHTML = '<option value="">اختار المادة</option>' +
+      subjects.map(s =>
+        `<option value="${escapeHTML(s.id)}">${escapeHTML(s.name)}</option>`
+      ).join("");
+
+    if (subjects.some(s => String(s.id) === previous)) {
+      select.value = previous;
+    }
+  }
+}
+
+function renderMedia() {
+  const grid = $("mediaGrid");
+
+  if (!mediaItems.length) {
+    grid.innerHTML = '<div class="empty">مفيش ذكريات هنا لسه.<br>أول ما الإدارة تضيف صور أو فيديوهات أو ملفات هتظهر هنا.</div>';
+    renderSubjects();
+    return;
+  }
+
+  grid.innerHTML = mediaItems.map(item => {
+    const url = safeURL(item.url);
+    let preview = `<div class="media-placeholder">${fileIcon(item.kind)}</div>`;
+
+    if (url && item.kind === "image") {
+      preview = `<a href="${escapeHTML(url)}" target="_blank" rel="noopener">
+        <img class="media-preview" src="${escapeHTML(url)}" alt="${escapeHTML(item.title)}" loading="lazy">
+      </a>`;
+    } else if (url && item.kind === "video" && url.includes("/storage/v1/object/public/")) {
+      preview = `<video class="media-preview" controls preload="metadata">
+        <source src="${escapeHTML(url)}">
+        المتصفح لا يدعم تشغيل الفيديو.
+      </video>`;
     }
 
-    await loadData();
+    let openLabel = "فتح الرابط";
+    if (item.kind === "image") openLabel = "عرض الصورة";
+    if (item.kind === "video") openLabel = "مشاهدة الفيديو";
+    if (item.kind === "pdf") openLabel = "فتح ملف PDF";
+
+    return `
+      <article class="media-card">
+        ${preview}
+        <div class="media-info">
+          <h3>${escapeHTML(item.title || "ذكرى بدون عنوان")}</h3>
+          <div class="small">${escapeHTML(subjectName(item.subject_id))}</div>
+          ${url ? `<a href="${escapeHTML(url)}" target="_blank" rel="noopener noreferrer">${openLabel} ↗</a>` : ""}
+          ${isAdmin ? `<button class="danger delete-media" data-id="${escapeHTML(item.id)}" type="button">حذف الذكرى</button>` : ""}
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  grid.querySelectorAll(".delete-media").forEach(button => {
+    button.addEventListener("click", () => deleteMedia(button.dataset.id));
   });
+
+  renderSubjects();
+}
+
+async function refreshAll() {
+  await loadSubjects();
+  await loadMedia();
+}
+
+async function deleteMedia(id) {
+  if (!isAdmin) return;
+  const item = mediaItems.find(m => String(m.id) === String(id));
+  if (!item) return;
+
+  if (!confirm("متأكد إنك عايز تحذف الذكرى دي؟")) return;
+
+  try {
+    message("جاري حذف الذكرى...", "info");
+
+    if (getStoragePath(item.url)) {
+      await removeStoredFile(item.url);
+    }
+
+    const {error} = await db.from("media").delete().eq("id", id);
+    if (error) throw error;
+
+    message("تم حذف الذكرى.", "success");
+    await refreshAll();
+  } catch (e) {
+    message("الحذف لم يكتمل: " + e.message, "error");
+  }
 }
 
 async function deleteSubject(id) {
-  if (!confirm("حذف المادة وكل محتواها؟")) return;
+  if (!isAdmin) return;
 
-  await run(async () => {
-    const entries = media.filter(m =>
-      String(m.subject_id) === String(id)
-    );
+  const name = subjectName(id);
+  if (!confirm(`حذف مادة "${name}" وكل الذكريات التابعة لها؟`)) return;
 
-    const {error: mediaError} = await db.from("media")
-      .delete().eq("subject_id", id);
+  try {
+    message("جاري حذف المادة وذكرياتها...", "info");
 
-    if (mediaError) {
-      alert("فشل حذف محتوى المادة:\n" + explainError(mediaError));
-      return;
-    }
+    const {data, error} = await db.from("media")
+      .select("id,url")
+      .eq("subject_id", id);
 
-    const {error} = await db.from("subjects").delete().eq("id", id);
+    if (error) throw error;
 
-    if (error) {
-      alert("تم حذف سجلات المحتوى، لكن فشل حذف المادة:\n" +
-        explainError(error));
-      await loadData();
-      return;
-    }
-
-    const paths = entries.map(m => storagePath(m.url)).filter(Boolean);
-    if (paths.length) {
-      const {error: storageError} = await db.storage
-        .from(BUCKET).remove(paths);
-
-      if (storageError) {
-        alert("تم حذف المادة وسجلات المحتوى، لكن بعض الملفات قد تظل في التخزين:\n" +
-          explainError(storageError));
+    for (const item of (data || [])) {
+      if (getStoragePath(item.url)) {
+        await removeStoredFile(item.url);
       }
     }
 
-    await loadData();
-  });
+    const {error: deleteError} = await db.from("subjects").delete().eq("id", id);
+    if (deleteError) throw deleteError;
+
+    if (String(selectedSubject) === String(id)) {
+      selectedSubject = null;
+      $("mediaHeading").textContent = "🖼️ الذكريات";
+    }
+
+    message("تم حذف المادة وذكرياتها.", "success");
+    await refreshAll();
+  } catch (e) {
+    message("تعذر إكمال الحذف: " + e.message, "error");
+  }
 }
 
-async function start() {
-  if (SUPABASE_KEY === "ضع_مفتاح_Publishable_هنا" ||
-      !SUPABASE_KEY.trim()) {
-    status("لازم تحط مفتاح Publishable الحقيقي في الكود أولًا.");
+async function login(event) {
+  event.preventDefault();
+  clearMessage();
+
+  const button = $("loginButton");
+  button.disabled = true;
+  button.textContent = "جاري تسجيل الدخول...";
+
+  try {
+    const {error} = await db.auth.signInWithPassword({
+      email: $("email").value.trim(),
+      password: $("password").value
+    });
+
+    if (error) throw error;
+
+    $("password").value = "";
+    await updateAuthUI();
+    message("تم تسجيل الدخول.", "success");
+  } catch (e) {
+    message("تعذر تسجيل الدخول. تأكد من البريد وكلمة المرور. " + e.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "دخول الإدارة";
+  }
+}
+
+async function logout() {
+  const {error} = await db.auth.signOut();
+  if (error) {
+    message("تعذر تسجيل الخروج: " + error.message, "error");
+    return;
+  }
+
+  await updateAuthUI();
+  message("تم تسجيل الخروج.", "success");
+}
+
+async function updateAuthUI() {
+  const {data} = await db.auth.getSession();
+  const session = data?.session;
+
+  /* نفس حساب الإدارة المعتمد في سياسات قاعدة البيانات */
+  isAdmin = Boolean(
+    session &&
+    session.user &&
+    session.user.id === "1d2939bd-08f4-4d74-964d-d604b3fe6592"
+  );
+
+  $("loginArea").style.display = isAdmin ? "none" : "block";
+  $("adminArea").style.display = isAdmin ? "block" : "none";
+
+  renderSubjects();
+  renderMedia();
+}
+
+async function addSubject(event) {
+  event.preventDefault();
+  if (!isAdmin) return;
+
+  const name = $("subjectName").value.trim();
+  if (!name) return;
+
+  try {
+    const {error} = await db.from("subjects").insert({name});
+    if (error) throw error;
+
+    $("subjectName").value = "";
+    message("تمت إضافة المادة.", "success");
+    await refreshAll();
+  } catch (e) {
+    message("فشلت إضافة المادة: " + e.message, "error");
+  }
+}
+
+async function uploadMedia(event) {
+  event.preventDefault();
+  if (!isAdmin) return;
+
+  const file = $("mediaFile").files[0];
+  const subjectId = $("uploadSubject").value;
+  const title = $("mediaTitle").value.trim();
+
+  if (!file || !subjectId) {
+    message("اختار المادة والملف الأول.", "error");
+    return;
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    message("حجم الملف أكبر من 50 ميجابايت.", "error");
+    return;
+  }
+
+  let kind;
+  if (file.type.startsWith("image/")) kind = "image";
+  else if (file.type.startsWith("video/")) kind = "video";
+  else if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) kind = "pdf";
+  else {
+    message("الملفات المسموحة صور وفيديوهات وPDF فقط.", "error");
+    return;
+  }
+
+  const button = $("uploadButton");
+  button.disabled = true;
+  button.textContent = "جاري الرفع...";
+
+  let uploadedPath = null;
+
+  try {
+    const cleanName = file.name.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    uploadedPath = `${subjectId}/${Date.now()}-${cleanName}`;
+
+    const {error: uploadError} = await db.storage
+      .from(BUCKET)
+      .upload(uploadedPath, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type || "application/octet-stream"
+      });
+
+    if (uploadError) throw uploadError;
+
+    const {data: urlData} = db.storage.from(BUCKET).getPublicUrl(uploadedPath);
+    const publicURL = urlData.publicUrl;
+
+    const {error: insertError} = await db.from("media").insert({
+      subject_id: Number(subjectId),
+      title: title || file.name,
+      kind,
+      url: publicURL
+    });
+
+    if (insertError) {
+      await db.storage.from(BUCKET).remove([uploadedPath]);
+      uploadedPath = null;
+      throw insertError;
+    }
+
+    $("uploadForm").reset();
+    message("تم رفع الملف وإضافته للمادة.", "success");
+    await refreshAll();
+  } catch (e) {
+    message("فشل رفع الملف: " + e.message, "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "رفع الملف";
+  }
+}
+
+async function addLink(event) {
+  event.preventDefault();
+  if (!isAdmin) return;
+
+  const subjectId = $("linkSubject").value;
+  const title = $("linkTitle").value.trim();
+  const url = safeURL($("linkUrl").value.trim());
+  const kind = $("linkKind").value;
+
+  if (!subjectId || !title || !url) {
+    message("اكتب اسم الرابط واختار المادة وحط رابط صحيح يبدأ بـ https:// أو http://", "error");
     return;
   }
 
   try {
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    await loadData();
-  } catch (error) {
-    status("تعذر الاتصال:\n" + explainError(error));
+    const {error} = await db.from("media").insert({
+      subject_id: Number(subjectId),
+      title,
+      kind,
+      url
+    });
+
+    if (error) throw error;
+
+    $("linkForm").reset();
+    message("تمت إضافة الرابط.", "success");
+    await refreshAll();
+  } catch (e) {
+    message("فشلت إضافة الرابط: " + e.message, "error");
+  }
+}
+
+$("loginForm").addEventListener("submit", login);
+$("logoutButton").addEventListener("click", logout);
+$("subjectForm").addEventListener("submit", addSubject);
+$("uploadForm").addEventListener("submit", uploadMedia);
+$("linkForm").addEventListener("submit", addLink);
+
+$("clearSelection").addEventListener("click", async () => {
+  selectedSubject = null;
+  $("mediaHeading").textContent = "🖼️ الذكريات";
+  renderSubjects();
+
+  try {
+    await loadMedia();
+  } catch (e) {
+    message("فشل تحميل الذكريات: " + e.message, "error");
+  }
+});
+
+async function start() {
+  try {
+    await updateAuthUI();
+    await refreshAll();
+  } catch (e) {
+    message(
+      "حصلت مشكلة في الاتصال بقاعدة البيانات. راجع إعدادات Supabase والسياسات. " + e.message,
+      "error"
+    );
+    $("subjects").innerHTML = '<div class="empty">تعذر تحميل المواد.</div>';
+    $("mediaGrid").innerHTML = '<div class="empty">تعذر تحميل الذكريات.</div>';
   }
 }
 
